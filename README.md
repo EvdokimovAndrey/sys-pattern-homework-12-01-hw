@@ -1,4 +1,4 @@
 # Домашнее задание к занятию "`Базы данных`" - `Евдокимов Андрей`
 
 `При необходимости прикрепитe сюда скриншоты
-![db-scheme](https://github.com/user-attachments/assets/71d6ebb3-9fe4-4a1f-931f-4866524bac10)`
+![db-scheme](https://github.com/EvdokimovAndrey/sys-pattern-homework-12-01-hw/blob/main/img/db-schema.png)`
