@@ -1,4 +1,4 @@
 # Домашнее задание к занятию "`Базы данных`" - `Евдокимов Андрей`
 
 `При необходимости прикрепитe сюда скриншоты
-![db-scheme](<img width="1325" height="852" alt="image" src="https://github.com/user-attachments/assets/71d6ebb3-9fe4-4a1f-931f-4866524bac10" />)`
+![db-scheme](https://github.com/user-attachments/assets/71d6ebb3-9fe4-4a1f-931f-4866524bac10)`
