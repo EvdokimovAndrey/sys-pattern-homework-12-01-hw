@@ -3,3 +3,5 @@
 `При необходимости прикрепитe сюда скриншоты
 
 ![db-scheme](https://raw.githubusercontent.com/EvdokimovAndrey/sys-pattern-homework-12-01-hw/refs/heads/main/img/db-schema.png)`
+
+# Домашнее задание к занятию "`Работа с данными (DDL/DML)`" - `Евдокимов Андрей`
