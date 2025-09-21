@@ -24,7 +24,7 @@ SHOW GRANTS FOR 'sys_temp'@'localhost';
 ```
 <img width="2550" height="396" alt="image" src="https://github.com/user-attachments/assets/13c0de7d-318f-4063-a58e-7cd583e4c042" />
 
-1.6. Переподключитесь к базе данных от имени sys_temp.
+1.6. Переподключитесь к базе данных от имени sys_temp.<br>
 <img width="253" height="120" alt="image" src="https://github.com/user-attachments/assets/bc44abe1-ada4-4368-820e-5db6331c0b82" />
 
 Для смены типа аутентификации с sha2 используйте запрос: 
