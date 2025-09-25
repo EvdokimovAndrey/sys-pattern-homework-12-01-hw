@@ -1,3 +1,41 @@
+# Домашнее задание к занятию "`SQL. Часть 1`" - `Евдокимов Андрей`
+
+## Задание 1
+Получите уникальные названия районов из таблицы с адресами, которые начинаются на “K” и заканчиваются на “a” и не содержат пробелов.
+```sql
+SELECT DISTINCT district FROM address WHERE LEFT(district, 1) = 'K' AND RIGHT(district, 1) = 'a' AND POSITION(' ' IN district) = 0;
+```
+<img width="746" height="352" alt="image" src="https://github.com/user-attachments/assets/2a319128-0453-493b-9cf3-e59f2c605d40" />
+
+## Задание 2
+Получите из таблицы платежей за прокат фильмов информацию по платежам, которые выполнялись в промежуток с 15 июня 2005 года по 18 июня 2005 года включительно и стоимость которых превышает 10.00.
+```sql
+SELECT * FROM payment WHERE payment_date BETWEEN '2005-06-15' AND '2005-06-18 23:59:59' AND amount > 10.00;
+```
+<img width="829" height="368" alt="image" src="https://github.com/user-attachments/assets/cf7cef9f-5c9f-4590-ba4f-b3b8b109bf41" />
+
+## Задание 3
+```sql
+SELECT * FROM rental ORDER BY rental_id DESC LIMIT 5;
+```
+<img width="668" height="342" alt="image" src="https://github.com/user-attachments/assets/035a6186-3918-4530-a0b0-563449e4b405" />
+
+## Задание 4
+Одним запросом получите активных покупателей, имена которых Kelly или Willie.
+Сформируйте вывод в результат таким образом:
+- все буквы в фамилии и имени из верхнего регистра переведите в нижний регистр,
+- замените буквы 'll' в именах на 'pp'.
+```sql
+SELECT 
+    customer_id,
+    LOWER(first_name) as first_name,
+    LOWER(last_name) as last_name,
+    REPLACE(LOWER(first_name), 'll', 'pp') as first_name,
+    active
+FROM customer WHERE active = 1 AND (first_name = 'Kelly' OR first_name = 'Willie');
+```
+<img width="661" height="358" alt="image" src="https://github.com/user-attachments/assets/fa29e1cf-7f2c-4e38-9e78-b3dd4e7abbf2" />
+
 # Домашнее задание к занятию "`Работа с данными (DDL/DML)`" - `Евдокимов Андрей`
 
 ### Задание 1
