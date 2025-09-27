@@ -18,8 +18,8 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 ```
 ### Ответ:
 ```
-'-> Table scan on <temporary><br>
-(cost=2.5..2.5 rows=0) (actual time=2345..2345 rows=391 loops=1)\n<br>
+'-> Table scan on <temporary> <br>
+(cost=2.5..2.5 rows=0) (actual time=2345..2345 rows=391 loops=1)\n <br>
 -> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=2345..2345 rows=391 loops=1)\n<br>
 -> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id,f.title )   (actual time=1498..2246 rows=642000 loops=1)\n<br>
 -> Sort: c.customer_id, f.title  (actual time=1498..1538 rows=642000 loops=1)\n<br>
