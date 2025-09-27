@@ -38,7 +38,20 @@ WHERE length > (SELECT AVG(length) FROM sakila.film);
 ## Задание 3
 Получите информацию, за какой месяц была получена наибольшая сумма платежей, и добавьте информацию по количеству аренд за этот месяц.
 ```sql
+WITH total_month AS (
+    SELECT
+        MONTHNAME(payment_date) AS month_name,
+        SUM(amount) AS total_sales,
+        COUNT(rental_id) AS rental_count
+    FROM sakila.payment 
+    GROUP BY MONTH(payment_date), MONTHNAME(payment_date)
+)
+
+SELECT * FROM total_month
+ORDER BY total_sales DESC 
+LIMIT 1;
 ```
+<img width="479" height="351" alt="image" src="https://github.com/user-attachments/assets/98416563-1c3c-4170-9770-9d241d72e1a3" />
 
 
 # Домашнее задание к занятию "`SQL. Часть 1`" - `Евдокимов Андрей`
