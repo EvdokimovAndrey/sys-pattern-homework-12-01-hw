@@ -1,3 +1,27 @@
+# Домашнее задание к занятию "`Индексы`" - `Евдокимов Андрей`
+
+## Задание 1
+Напишите запрос к учебной базе данных, который вернёт процентное отношение общего размера всех индексов к общему размеру всех таблиц.
+```sql
+SELECT ((SUM(INDEX_LENGTH) / (SUM(INDEX_LENGTH) + SUM(DATA_LENGTH))) * 100) as index_percentage
+FROM information_schema.TABLES 
+WHERE TABLE_SCHEMA = 'sakila';
+```
+<img width="758" height="203" alt="image" src="https://github.com/user-attachments/assets/16a8dea1-1c98-4c17-9d86-adffcf475be7" />
+
+## Задание 2
+Выполнен explain analyze следующего запроса:
+```sql
+explain analyze select distinct concat(c.last_name, ' ', c.first_name), sum(p.amount) over (partition by c.customer_id, f.title)
+from payment p, rental r, customer c, inventory i, film f
+where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and r.customer_id = c.customer_id and i.inventory_id = r.inventory_id
+```
+### Ответ:
+```
+'-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=2345..2345 rows=391 loops=1)\n    -> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=2345..2345 rows=391 loops=1)\n        -> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id,f.title )   (actual time=1498..2246 rows=642000 loops=1)\n            -> Sort: c.customer_id, f.title  (actual time=1498..1538 rows=642000 loops=1)\n                -> Stream results  (cost=23.1e+6 rows=16.5e+6) (actual time=7.94..1153 rows=642000 loops=1)\n                    -> Nested loop inner join  (cost=23.1e+6 rows=16.5e+6) (actual time=7.81..995 rows=642000 loops=1)\n                        -> Nested loop inner join  (cost=21.5e+6 rows=16.5e+6) (actual time=1.04..860 rows=642000 loops=1)\n                            -> Nested loop inner join  (cost=19.8e+6 rows=16.5e+6) (actual time=1.02..725 rows=642000 loops=1)\n                                -> Inner hash join (no condition)  (cost=1.65e+6 rows=16.5e+6) (actual time=0.755..28 rows=634000 loops=1)\n                                    -> Filter: (cast(p.payment_date as date) = \'2005-07-30\')  (cost=1.72 rows=16500) (actual time=0.143..3.51 rows=634 loops=1)\n                                        -> Table scan on p  (cost=1.72 rows=16500) (actual time=0.134..2.46 rows=16044 loops=1)\n                                    -> Hash\n                                        -> Covering index scan on f using idx_title  (cost=103 rows=1000) (actual time=0.317..0.55 rows=1000 loops=1)\n                                -> Covering index lookup on r using rental_date (rental_date=p.payment_date)  (cost=1 rows=1) (actual time=671e-6..987e-6 rows=1.01 loops=634000)\n                            -> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=250e-6 rows=1) (actual time=83.4e-6..103e-6 rows=1 loops=642000)\n                        -> Single-row covering index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.001 rows=1) (actual time=85.6e-6..106e-6 rows=1 loops=642000)\n'
+```
+
+
 # Домашнее задание к занятию "`SQL. Часть 2`" - `Евдокимов Андрей`
 
 ## Задание 1
