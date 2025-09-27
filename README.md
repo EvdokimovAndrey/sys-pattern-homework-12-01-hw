@@ -1,3 +1,46 @@
+# Домашнее задание к занятию "`SQL. Часть 2`" - `Евдокимов Андрей`
+
+## Задание 1
+Одним запросом получите информацию о магазине, в котором обслуживается более 300 покупателей, и выведите в результат следующую информацию:
+- фамилия и имя сотрудника из этого магазина;
+- город нахождения магазина;
+- количество пользователей, закреплённых в этом магазине.
+```sql
+WITH customer_counts AS (
+    SELECT store_id, COUNT(*) as customer_count 
+    FROM sakila.customer 
+    GROUP BY store_id 
+    HAVING COUNT(*) > 300
+)
+
+SELECT 
+    st.first_name,
+    st.last_name,
+    city.city,
+    cc.customer_count
+FROM customer_counts cc
+JOIN sakila.store s ON cc.store_id = s.store_id
+JOIN sakila.staff st ON s.manager_staff_id = st.staff_id
+JOIN sakila.address a ON s.address_id = a.address_id
+JOIN sakila.city city ON a.city_id = city.city_id;
+```
+<img width="472" height="461" alt="image" src="https://github.com/user-attachments/assets/6f3bffb8-02f8-4ac9-b977-ce1290a00d61" />
+
+## Задание 2
+Получите количество фильмов, продолжительность которых больше средней продолжительности всех фильмов.
+```sql
+SELECT COUNT(*)
+FROM sakila.film 
+WHERE length > (SELECT AVG(length) FROM sakila.film);
+```
+<img width="451" height="220" alt="image" src="https://github.com/user-attachments/assets/0906a434-fee2-46ef-827d-2d73df577498" />
+
+## Задание 3
+Получите информацию, за какой месяц была получена наибольшая сумма платежей, и добавьте информацию по количеству аренд за этот месяц.
+```sql
+```
+
+
 # Домашнее задание к занятию "`SQL. Часть 1`" - `Евдокимов Андрей`
 
 ## Задание 1
