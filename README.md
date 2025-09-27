@@ -17,9 +17,8 @@ from payment p, rental r, customer c, inventory i, film f
 where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and r.customer_id = c.customer_id and i.inventory_id = r.inventory_id
 ```
 ### Ответ:
-```
-'-> Table scan on <temporary> <br>
-(cost=2.5..2.5 rows=0) (actual time=2345..2345 rows=391 loops=1)\n <br>
+'-> Table scan on <temporary><br>
+(cost=2.5..2.5 rows=0) (actual time=2345..2345 rows=391 loops=1)\n<br>
 -> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=2345..2345 rows=391 loops=1)\n<br>
 -> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id,f.title )   (actual time=1498..2246 rows=642000 loops=1)\n<br>
 -> Sort: c.customer_id, f.title  (actual time=1498..1538 rows=642000 loops=1)\n<br>
@@ -35,7 +34,6 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 -> Covering index lookup on r using rental_date (rental_date=p.payment_date)  (cost=1 rows=1) (actual time=671e-6..987e-6 rows=1.01 loops=634000)\n<br>
 -> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=250e-6 rows=1) (actual time=83.4e-6..103e-6 rows=1 loops=642000)\n<br>
 -> Single-row covering index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.001 rows=1) (actual time=85.6e-6..106e-6 rows=1 loops=642000)\n'<br>
-```
 
 
 # Домашнее задание к занятию "`SQL. Часть 2`" - `Евдокимов Андрей`
