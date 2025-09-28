@@ -32,7 +32,7 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 -> Covering index scan on f using idx_title  (cost=103 rows=1000) (actual time=0.317..0.55 rows=1000 loops=1)\n<br>
 -> Covering index lookup on r using rental_date (rental_date=p.payment_date)  (cost=1 rows=1) (actual time=671e-6..987e-6 rows=1.01 loops=634000)\n<br>
 -> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=250e-6 rows=1) (actual time=83.4e-6..103e-6 rows=1 loops=642000)\n<br>
--> Single-row covering index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.001 rows=1) (actual time=85.6e-6..106e-6 rows=1 loops=642000)\n'<br>
+-> Single-row covering index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.001 rows=1) (actual time=85.6e-6..106e-6 rows=1 loops=642000)\n<br>
 
 ### Решение:
 Из результата explain analyze можно видеть, что запрос довольно медленный и с высоким cost. Для оптимизации его можно откорректировать в зависимости от желаемого итогового результата. Исходя из вида исходного запроса можно рассмотреть два случая: 
@@ -41,20 +41,21 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 ```sql
 select distinct  concat(c.last_name, ' ', c.first_name ), sum(p.amount) over (partition by c.customer_id )
 from payment p, rental r, customer c
-where p.payment_date = '2005-07-30' and p.payment_date = r.rental_date and r.customer_id = c.customer_id
+where p.payment_date >= '2005-07-30 00:00:00' AND p.payment_date < '2005-07-30 23:59:59'  and p.payment_date = r.rental_date and r.customer_id = c.customer_id
 ```
 ### Резульат explain analyze:
--> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=0.0412..0.0412 rows=0 loops=1)\n<br>
--> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=0.0404..0.0404 rows=0 loops=1)\n<br>
--> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id )   (actual time=0.0341..0.0341 rows=0 loops=1)\n<br>
--> Sort: c.customer_id  (actual time=0.0322..0.0322 rows=0 loops=1)\n                -> Stream results  (cost=1678 rows=165) (actual time=0.0269..0.0269 rows=0 loops=1)\n<br>
--> Inner hash join (no condition)  (cost=1678 rows=165) (actual time=0.0258..0.0258 rows=0 loops=1)\n<br>
--> Filter: (p.payment_date = TIMESTAMP\'2005-07-30 00:00:00\')  (cost=1676 rows=1650) (never executed)\n<br>
--> Table scan on p  (cost=1676 rows=16500) (never executed)\n<br>
--> Hash\n<br>
--> Nested loop inner join  (cost=1.42 rows=1) (actual time=0.0206..0.0206 rows=0 loops=1)\n<br>
--> Covering index lookup on r using rental_date (rental_date=TIMESTAMP\'2005-07-30 00:00:00\')  (cost=1.07 rows=1) (actual time=0.0199..0.0199 rows=0 loops=1)\n<br>
--> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.35 rows=1) (never executed)\n'<br>
+-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=6.37..6.41 rows=391 loops=1)\n    <br>
+-> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=6.37..6.37 rows=391 loops=1)\n <br>       
+-> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id )   (actual time=5.31..6.21 rows=642 loops=1)\n     <br>       
+-> Sort: c.customer_id  (actual time=5.29..5.32 rows=642 loops=1)\n            <br>    
+-> Stream results  (cost=4276 rows=1835) (actual time=0.237..5.17 rows=642 loops=1)\n     <br>               
+-> Nested loop inner join  (cost=4276 rows=1835) (actual time=0.23..5 rows=642 loops=1)\n    <br>                    
+-> Nested loop inner join  (cost=3633 rows=1835) (actual time=0.221..4.54 rows=642 loops=1)\n     <br>                       
+-> Filter: ((p.payment_date >= TIMESTAMP\'2005-07-30 00:00:00\') and (p.payment_date < TIMESTAMP\'2005-07-30 23:59:59\'))  (cost=1674 rows=1833) (actual time=0.204..3.48 rows=634 loops=1)\n     <br>                           
+-> Table scan on p  (cost=1674 rows=16500) (actual time=0.192..2.64 rows=16044 loops=1)\n                            <br>
+-> Covering index lookup on r using rental_date (rental_date=p.payment_date)  (cost=0.969 rows=1) (actual time=0.00113..0.00154 rows=1.01 loops=634)\n       <br>                 
+-> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.25 rows=1) (actual time=579e-6..602e-6 rows=1 loops=642)\n'<br>
+
 
 ### 2) Цель: получить данные тратах конкретного покупателя на конкретный фильм. 
 Во этом случае обращения к таблицам inventory и film необходимы. Но нужно указать условие фильтрации "", иначе будут создаваться дуликаты для всех 1000 фильмов из film, что негативно скажется на производительности и не даст желаемого результата. <br>
@@ -65,13 +66,44 @@ from payment p, rental r, customer c, inventory i, film f
 where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and r.customer_id = c.customer_id and i.inventory_id = r.inventory_id and i.film_id = f.film_id
 ```
 ### Резульат explain analyze:
+-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=7.03..7.08 rows=602 loops=1)\n<br>
+-> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=7.03..7.03 rows=602 loops=1)\n<br>
+-> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id,f.title )   (actual time=5.98..6.88 rows=642 loops=1)\n<br>
+-> Sort: c.customer_id, f.title  (actual time=5.96..6 rows=642 loops=1)\n<br>
+-> Stream results  (cost=36656 rows=16520) (actual time=0.187..5.76 rows=642 loops=1)\n<br>
+-> Nested loop inner join  (cost=36656 rows=16520) (actual time=0.182..5.54 rows=642 loops=1)\n<br>
+-> Nested loop inner join  (cost=30875 rows=16520) (actual time=0.179..4.97 rows=642 loops=1)\n<br>
+-> Nested loop inner join  (cost=25093 rows=16520) (actual time=0.176..4.41 rows=642 loops=1)\n<br>
+-> Nested loop inner join  (cost=19311 rows=16520) (actual time=0.17..3.99 rows=642 loops=1)\n<br>
+-> Filter: (cast(p.payment_date as date) = \'2005-07-30\')  (cost=1674 rows=16500) (actual time=0.156..3.06 rows=634 loops=1)\n<br>
+-> Table scan on p  (cost=1674 rows=16500) (actual time=0.148..2.31 rows=16044 loops=1)\n<br>
+-> Covering index lookup on r using rental_date (rental_date=p.payment_date)  (cost=0.969 rows=1) (actual time=981e-6..0.00136 rows=1.01 loops=634)\n<br>
+-> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.25 rows=1) (actual time=521e-6..541e-6 rows=1 loops=642)\n<br>
+-> Single-row index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.25 rows=1) (actual time=746e-6..767e-6 rows=1 loops=642)\n<br>
+-> Single-row index lookup on f using PRIMARY (film_id=i.film_id)  (cost=0.25 rows=1) (actual time=753e-6..774e-6 rows=1 loops=642)\n<br>
+
+### Исследуем влияние на оптимизацию запроса добавления индекса для 'payment_date' на примере первого запроса
+<img width="1051" height="282" alt="image" src="https://github.com/user-attachments/assets/92eb9f09-bbbf-42c0-ac77-09284985e67d" />
+```sql
+select distinct  concat(c.last_name, ' ', c.first_name ), sum(p.amount) over (partition by c.customer_id )
+from payment p, rental r, customer c
+where p.payment_date >= '2005-07-30 00:00:00' AND p.payment_date < '2005-07-30 23:59:59'  and p.payment_date = r.rental_date and r.customer_id = c.customer_id
 ```
-'-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=7.03..7.08 rows=602 loops=1)\n    -> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=7.03..7.03 rows=602 loops=1)\n        -> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id,f.title )   (actual time=5.98..6.88 rows=642 loops=1)\n            -> Sort: c.customer_id, f.title  (actual time=5.96..6 rows=642 loops=1)\n                -> Stream results  (cost=36656 rows=16520) (actual time=0.187..5.76 rows=642 loops=1)\n                    -> Nested loop inner join  (cost=36656 rows=16520) (actual time=0.182..5.54 rows=642 loops=1)\n                        -> Nested loop inner join  (cost=30875 rows=16520) (actual time=0.179..4.97 rows=642 loops=1)\n                            -> Nested loop inner join  (cost=25093 rows=16520) (actual time=0.176..4.41 rows=642 loops=1)\n                                -> Nested loop inner join  (cost=19311 rows=16520) (actual time=0.17..3.99 rows=642 loops=1)\n                                    -> Filter: (cast(p.payment_date as date) = \'2005-07-30\')  (cost=1674 rows=16500) (actual time=0.156..3.06 rows=634 loops=1)\n                                        -> Table scan on p  (cost=1674 rows=16500) (actual time=0.148..2.31 rows=16044 loops=1)\n                                    -> Covering index lookup on r using rental_date (rental_date=p.payment_date)  (cost=0.969 rows=1) (actual time=981e-6..0.00136 rows=1.01 loops=634)\n                                -> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.25 rows=1) (actual time=521e-6..541e-6 rows=1 loops=642)\n                            -> Single-row index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.25 rows=1) (actual time=746e-6..767e-6 rows=1 loops=642)\n                        -> Single-row index lookup on f using PRIMARY (film_id=i.film_id)  (cost=0.25 rows=1) (actual time=753e-6..774e-6 rows=1 loops=642)\n'
-```
+### Резульат explain analyze:
+-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=4.01..4.04 rows=391 loops=1)\n<br>    
+-> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=4.01..4.01 rows=391 loops=1)\n<br>        
+-> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id )   (actual time=3.34..3.9 rows=642 loops=1)\n<br>            
+-> Sort: c.customer_id  (actual time=3.32..3.34 rows=642 loops=1)\n<br>                
+-> Stream results  (cost=582 rows=661) (actual time=0.0877..3.19 rows=642 loops=1)\n<br>                    
+-> Nested loop inner join  (cost=582 rows=661) (actual time=0.0834..3.03 rows=642 loops=1)\n<br>                        
+-> Nested loop inner join  (cost=351 rows=634) (actual time=0.0696..0.779 rows=634 loops=1)\n<br>                            
+-> Filter: ((r.rental_date >= TIMESTAMP\'2005-07-30 00:00:00\') and (r.rental_date < TIMESTAMP\'2005-07-30 23:59:59\'))  (cost=129 rows=634) (actual time=0.0578..0.212 rows=634 loops=1)\n<br>                                
+-> Covering index range scan on r using rental_date over (\'2005-07-30 00:00:00\' <= rental_date < \'2005-07-30 23:59:59\')  (cost=129 rows=634) (actual time=0.0555..0.144 rows=634 loops=1)\n<br>                            
+-> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.25 rows=1) (actual time=767e-6..787e-6 rows=1 loops=634)\n<br>                        
+-> Index lookup on p using idx_payment_date (payment_date=r.rental_date)  (cost=0.261 rows=1.04) (actual time=0.00309..0.00338 rows=1.01 loops=634)\n<br>
 
 ### Вывод: 
-Оба варианта оптимизации значительно ускоряют получение данных.
-
+Оба варианта оптимизации, основанные на верном понимании целеполагания формирования выборки значительно ускоряют получение данных. Добавление индекса смогло ускорить запрос 6.37 мс до 4.04 мс.
 
 # Домашнее задание к занятию "`SQL. Часть 2`" - `Евдокимов Андрей`
 
