@@ -35,7 +35,7 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 -> Single-row covering index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.001 rows=1) (actual time=85.6e-6..106e-6 rows=1 loops=642000)\n'<br>
 
 ### Решение:
-Запрос можно откорректировать в зависимости от желаемого итогового результата. Исходя из исходного запроса можно рассмотреть два случая: 
+Из результата explain analyze можно видеть, что запрос довольно медленный и с высоким cost. Для оптимизации его можно откорректировать в зависимости от желаемого итогового результата. Исходя из вида исходного запроса можно рассмотреть два случая: 
 ### 1) Цель: получить данные обо всех тратах конкретного покупателя за 2005-07-30.
 В этом случае обращение к таблицам inventory и film излишни, но join с них без условия фильтрации тратит мног ресурсов, что видно по строке "Inner hash join (no condition)  (cost=1.65e+6 rows=16.5e+6) (actual time=0.755..28 rows=634000 loops=1)\n". Поэтому запрос можно исправить так, что так же и оптимизирует его: 
 ```sql
@@ -44,9 +44,18 @@ from payment p, rental r, customer c
 where p.payment_date = '2005-07-30' and p.payment_date = r.rental_date and r.customer_id = c.customer_id
 ```
 ### Резульат explain analyze:
-```
-'-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=0.0412..0.0412 rows=0 loops=1)\n    -> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=0.0404..0.0404 rows=0 loops=1)\n        -> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id )   (actual time=0.0341..0.0341 rows=0 loops=1)\n            -> Sort: c.customer_id  (actual time=0.0322..0.0322 rows=0 loops=1)\n                -> Stream results  (cost=1678 rows=165) (actual time=0.0269..0.0269 rows=0 loops=1)\n                    -> Inner hash join (no condition)  (cost=1678 rows=165) (actual time=0.0258..0.0258 rows=0 loops=1)\n                        -> Filter: (p.payment_date = TIMESTAMP\'2005-07-30 00:00:00\')  (cost=1676 rows=1650) (never executed)\n                            -> Table scan on p  (cost=1676 rows=16500) (never executed)\n                        -> Hash\n                            -> Nested loop inner join  (cost=1.42 rows=1) (actual time=0.0206..0.0206 rows=0 loops=1)\n                                -> Covering index lookup on r using rental_date (rental_date=TIMESTAMP\'2005-07-30 00:00:00\')  (cost=1.07 rows=1) (actual time=0.0199..0.0199 rows=0 loops=1)\n                                -> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.35 rows=1) (never executed)\n'
-```
+-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=0.0412..0.0412 rows=0 loops=1)\n<br>
+-> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=0.0404..0.0404 rows=0 loops=1)\n<br>
+-> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id )   (actual time=0.0341..0.0341 rows=0 loops=1)\n<br>
+-> Sort: c.customer_id  (actual time=0.0322..0.0322 rows=0 loops=1)\n                -> Stream results  (cost=1678 rows=165) (actual time=0.0269..0.0269 rows=0 loops=1)\n<br>
+-> Inner hash join (no condition)  (cost=1678 rows=165) (actual time=0.0258..0.0258 rows=0 loops=1)\n<br>
+-> Filter: (p.payment_date = TIMESTAMP\'2005-07-30 00:00:00\')  (cost=1676 rows=1650) (never executed)\n<br>
+-> Table scan on p  (cost=1676 rows=16500) (never executed)\n<br>
+-> Hash\n<br>
+-> Nested loop inner join  (cost=1.42 rows=1) (actual time=0.0206..0.0206 rows=0 loops=1)\n<br>
+-> Covering index lookup on r using rental_date (rental_date=TIMESTAMP\'2005-07-30 00:00:00\')  (cost=1.07 rows=1) (actual time=0.0199..0.0199 rows=0 loops=1)\n<br>
+-> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.35 rows=1) (never executed)\n'<br>
+
 ### 2) Цель: получить данные тратах конкретного покупателя на конкретный фильм. 
 Во этом случае обращения к таблицам inventory и film необходимы. Но нужно указать условие фильтрации "", иначе будут создаваться дуликаты для всех 1000 фильмов из film, что негативно скажется на производительности и не даст желаемого результата. <br>
 Итоговый запрос:
@@ -59,6 +68,10 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 ```
 '-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=7.03..7.08 rows=602 loops=1)\n    -> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=7.03..7.03 rows=602 loops=1)\n        -> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id,f.title )   (actual time=5.98..6.88 rows=642 loops=1)\n            -> Sort: c.customer_id, f.title  (actual time=5.96..6 rows=642 loops=1)\n                -> Stream results  (cost=36656 rows=16520) (actual time=0.187..5.76 rows=642 loops=1)\n                    -> Nested loop inner join  (cost=36656 rows=16520) (actual time=0.182..5.54 rows=642 loops=1)\n                        -> Nested loop inner join  (cost=30875 rows=16520) (actual time=0.179..4.97 rows=642 loops=1)\n                            -> Nested loop inner join  (cost=25093 rows=16520) (actual time=0.176..4.41 rows=642 loops=1)\n                                -> Nested loop inner join  (cost=19311 rows=16520) (actual time=0.17..3.99 rows=642 loops=1)\n                                    -> Filter: (cast(p.payment_date as date) = \'2005-07-30\')  (cost=1674 rows=16500) (actual time=0.156..3.06 rows=634 loops=1)\n                                        -> Table scan on p  (cost=1674 rows=16500) (actual time=0.148..2.31 rows=16044 loops=1)\n                                    -> Covering index lookup on r using rental_date (rental_date=p.payment_date)  (cost=0.969 rows=1) (actual time=981e-6..0.00136 rows=1.01 loops=634)\n                                -> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.25 rows=1) (actual time=521e-6..541e-6 rows=1 loops=642)\n                            -> Single-row index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.25 rows=1) (actual time=746e-6..767e-6 rows=1 loops=642)\n                        -> Single-row index lookup on f using PRIMARY (film_id=i.film_id)  (cost=0.25 rows=1) (actual time=753e-6..774e-6 rows=1 loops=642)\n'
 ```
+
+### Вывод: 
+Оба варианта оптимизации значительно ускоряют получение данных.
+
 
 # Домашнее задание к занятию "`SQL. Часть 2`" - `Евдокимов Андрей`
 
