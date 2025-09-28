@@ -34,8 +34,10 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 -> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=250e-6 rows=1) (actual time=83.4e-6..103e-6 rows=1 loops=642000)\n<br>
 -> Single-row covering index lookup on i using PRIMARY (inventory_id=r.inventory_id)  (cost=0.001 rows=1) (actual time=85.6e-6..106e-6 rows=1 loops=642000)\n'<br>
 
-Запрос можно откорректировать в зависимости от желаемого итогового результата. Исходя из исходного запроса его цель: либо получить данные обо всех тратах конкретного покупателя за 2005-07-30, либо о тратах конкретного покупателя на конкретный фильм. <br>
-В первом случае обращение к таблицам inventory и film излишни, но join с них без условия фильтрации тратит мног ресурсов, что видно по строке "Inner hash join (no condition)  (cost=1.65e+6 rows=16.5e+6) (actual time=0.755..28 rows=634000 loops=1)\n". Поэтому запрос можно исправить так, что так же и оптимизирует его: 
+### Решение:
+Запрос можно откорректировать в зависимости от желаемого итогового результата. Исходя из исходного запроса можно рассмотреть два случая: 
+### 1) Цель: получить данные обо всех тратах конкретного покупателя за 2005-07-30.
+В этом случае обращение к таблицам inventory и film излишни, но join с них без условия фильтрации тратит мног ресурсов, что видно по строке "Inner hash join (no condition)  (cost=1.65e+6 rows=16.5e+6) (actual time=0.755..28 rows=634000 loops=1)\n". Поэтому запрос можно исправить так, что так же и оптимизирует его: 
 ```sql
 select distinct  concat(c.last_name, ' ', c.first_name ), sum(p.amount) over (partition by c.customer_id )
 from payment p, rental r, customer c
@@ -45,7 +47,8 @@ where p.payment_date = '2005-07-30' and p.payment_date = r.rental_date and r.cus
 ```
 '-> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=0.0412..0.0412 rows=0 loops=1)\n    -> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=0.0404..0.0404 rows=0 loops=1)\n        -> Window aggregate with buffering: sum(payment.amount) OVER (PARTITION BY c.customer_id )   (actual time=0.0341..0.0341 rows=0 loops=1)\n            -> Sort: c.customer_id  (actual time=0.0322..0.0322 rows=0 loops=1)\n                -> Stream results  (cost=1678 rows=165) (actual time=0.0269..0.0269 rows=0 loops=1)\n                    -> Inner hash join (no condition)  (cost=1678 rows=165) (actual time=0.0258..0.0258 rows=0 loops=1)\n                        -> Filter: (p.payment_date = TIMESTAMP\'2005-07-30 00:00:00\')  (cost=1676 rows=1650) (never executed)\n                            -> Table scan on p  (cost=1676 rows=16500) (never executed)\n                        -> Hash\n                            -> Nested loop inner join  (cost=1.42 rows=1) (actual time=0.0206..0.0206 rows=0 loops=1)\n                                -> Covering index lookup on r using rental_date (rental_date=TIMESTAMP\'2005-07-30 00:00:00\')  (cost=1.07 rows=1) (actual time=0.0199..0.0199 rows=0 loops=1)\n                                -> Single-row index lookup on c using PRIMARY (customer_id=r.customer_id)  (cost=0.35 rows=1) (never executed)\n'
 ```
-Во втором случае обращения к таблицам inventory и film необходимы. Но нужно указать условие фильтрации "", иначе будут создаваться дуликаты для всех 1000 фильмов из film, что негативно скажется на производительности и не даст желаемого результата. <br>
+### 2) Цель: получить данные тратах конкретного покупателя на конкретный фильм. 
+Во этом случае обращения к таблицам inventory и film необходимы. Но нужно указать условие фильтрации "", иначе будут создаваться дуликаты для всех 1000 фильмов из film, что негативно скажется на производительности и не даст желаемого результата. <br>
 Итоговый запрос:
 ```sql
 select distinct concat(c.last_name, ' ', c.first_name), sum(p.amount) over (partition by c.customer_id, f.title)
