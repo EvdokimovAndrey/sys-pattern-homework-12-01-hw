@@ -84,11 +84,13 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 
 ### Исследуем влияние на оптимизацию запроса добавления индекса для 'payment_date' на примере первого запроса
 <img width="1051" height="282" alt="image" src="https://github.com/user-attachments/assets/92eb9f09-bbbf-42c0-ac77-09284985e67d" />
+
 ```sql
 select distinct  concat(c.last_name, ' ', c.first_name ), sum(p.amount) over (partition by c.customer_id )
 from payment p, rental r, customer c
 where p.payment_date >= '2005-07-30 00:00:00' AND p.payment_date < '2005-07-30 23:59:59'  and p.payment_date = r.rental_date and r.customer_id = c.customer_id
 ```
+
 ### Резульат explain analyze:
 -> Table scan on <temporary>  (cost=2.5..2.5 rows=0) (actual time=4.01..4.04 rows=391 loops=1)\n<br>    
 -> Temporary table with deduplication  (cost=0..0 rows=0) (actual time=4.01..4.01 rows=391 loops=1)\n<br>        
