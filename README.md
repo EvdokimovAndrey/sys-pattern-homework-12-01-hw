@@ -7,12 +7,12 @@
 Приложите скриншоты конфигурации, выполнения работы: состояния и режимы работы серверов.
 ### Создано 2 контейнера - master и replica
 <img width="1363" height="465" alt="image" src="https://github.com/user-attachments/assets/e54ee9d8-a3b0-465d-b88b-ddf1372b2b9f" />
-**Конфигурация master**
+### Конфигурация master
 <img width="683" height="719" alt="image" src="https://github.com/user-attachments/assets/70dd1da8-e15b-4f27-889c-c52e309215a7" />
-**Конфигурация replica**
+### Конфигурация replica
 <img width="665" height="750" alt="image" src="https://github.com/user-attachments/assets/ff365991-7a7d-44d0-8879-96cc3620cd85" />
 
-**Состояния и режимы работы**
+### Состояния и режимы работы
 ```sql
 SHOW BINARY LOG STATUS\G
 ```
@@ -27,7 +27,7 @@ Source_Port: 3306
 Replica_IO_Running: Yes
 ```
 Из этих параметров видно, что соединение с master, который на порту 3306 активно.<br>
-**Создадим на master тестовые данные**
+### Создадим на master тестовые данные
 ```sql
 CREATE DATABASE test_replication;
 USE test_replication;
@@ -36,7 +36,7 @@ INSERT INTO test_table VALUES (1, 'test_data');
 ```
 <img width="436" height="284" alt="image" src="https://github.com/user-attachments/assets/2d20f939-b859-4221-b5ad-5d2c525c1d3c" />
 
-**И проверим их наличие на реплике**
+### И проверим их наличие на реплике
 ```sql
 SHOW DATABASES;
 USE test_replication;
