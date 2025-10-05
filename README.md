@@ -1,3 +1,28 @@
+# Домашнее задание к занятию "`Репликация и масштабирование. Часть 1`" - `Евдокимов Андрей`
+
+## Задание 1
+На лекции рассматривались режимы репликации master-slave, master-master, опишите их различия.
+## Задание 2
+Выполните конфигурацию master-slave репликации, примером можно пользоваться из лекции.
+Приложите скриншоты конфигурации, выполнения работы: состояния и режимы работы серверов.
+### Создано 2 контейнера - master и replica
+<img width="1363" height="465" alt="image" src="https://github.com/user-attachments/assets/e54ee9d8-a3b0-465d-b88b-ddf1372b2b9f" />
+### Состояния и режимы работы
+```sql
+SHOW BINARY LOG STATUS\G
+```
+<img width="445" height="148" alt="image" src="https://github.com/user-attachments/assets/a418577c-8397-49da-af89-b65ae382bf39" />
+```sql
+SHOW REPLICA STATUS\G
+```
+<img width="638" height="1110" alt="image" src="https://github.com/user-attachments/assets/7832038f-2450-4b08-a517-04a7502548ab" />
+```
+Source_Host: master
+Source_Port: 3306
+Replica_IO_Running: Yes
+```
+Из этих параметров видно, что соединение с master, который на порту 3306 активно.
+
 # Домашнее задание к занятию "`Индексы`" - `Евдокимов Андрей`
 
 ## Задание 1
