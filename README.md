@@ -6,21 +6,21 @@
 Выполните конфигурацию master-slave репликации, примером можно пользоваться из лекции.
 Приложите скриншоты конфигурации, выполнения работы: состояния и режимы работы серверов.
 ### Создано 2 контейнера - master и replica
-<img width="1363" height="465" alt="image" src="https://github.com/user-attachments/assets/e54ee9d8-a3b0-465d-b88b-ddf1372b2b9f" />
+<img width="1363" height="465" alt="image" src="https://github.com/user-attachments/assets/e54ee9d8-a3b0-465d-b88b-ddf1372b2b9f" /><br>
 ### Конфигурация master
-<img width="683" height="719" alt="image" src="https://github.com/user-attachments/assets/70dd1da8-e15b-4f27-889c-c52e309215a7" />
+<img width="683" height="719" alt="image" src="https://github.com/user-attachments/assets/70dd1da8-e15b-4f27-889c-c52e309215a7" /><br>
 ### Конфигурация replica
-<img width="665" height="750" alt="image" src="https://github.com/user-attachments/assets/ff365991-7a7d-44d0-8879-96cc3620cd85" />
+<img width="665" height="750" alt="image" src="https://github.com/user-attachments/assets/ff365991-7a7d-44d0-8879-96cc3620cd85" /><br>
 
 ### Состояния и режимы работы
 ```sql
 SHOW BINARY LOG STATUS\G
 ```
-<img width="445" height="148" alt="image" src="https://github.com/user-attachments/assets/a418577c-8397-49da-af89-b65ae382bf39" />
+<img width="445" height="148" alt="image" src="https://github.com/user-attachments/assets/a418577c-8397-49da-af89-b65ae382bf39" /><br>
 ```sql
 SHOW REPLICA STATUS\G
 ```
-<img width="638" height="1110" alt="image" src="https://github.com/user-attachments/assets/7832038f-2450-4b08-a517-04a7502548ab" />
+<img width="638" height="1110" alt="image" src="https://github.com/user-attachments/assets/7832038f-2450-4b08-a517-04a7502548ab" /><br>
 ```sql
 Source_Host: master
 Source_Port: 3306
@@ -34,7 +34,7 @@ USE test_replication;
 CREATE TABLE test_table (id INT, name VARCHAR(100));
 INSERT INTO test_table VALUES (1, 'test_data');
 ```
-<img width="436" height="284" alt="image" src="https://github.com/user-attachments/assets/2d20f939-b859-4221-b5ad-5d2c525c1d3c" />
+<img width="436" height="284" alt="image" src="https://github.com/user-attachments/assets/2d20f939-b859-4221-b5ad-5d2c525c1d3c" /><br>
 
 ### И проверим их наличие на реплике
 ```sql
@@ -42,7 +42,7 @@ SHOW DATABASES;
 USE test_replication;
 SELECT * FROM test_table;
 ```
-<img width="490" height="586" alt="image" src="https://github.com/user-attachments/assets/f4ac1237-4cff-433b-8a6e-e9003fc299fe" />
+<img width="490" height="586" alt="image" src="https://github.com/user-attachments/assets/f4ac1237-4cff-433b-8a6e-e9003fc299fe" /><br>
 
 # Домашнее задание к занятию "`Индексы`" - `Евдокимов Андрей`
 
