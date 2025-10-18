@@ -31,9 +31,9 @@
 <img width="960" height="873" alt="image" src="https://github.com/user-attachments/assets/fab55082-0791-407b-a328-6949d425a511" /><br>
 ### Режимы работы серверов
 Сервера `entities_master` и `entities_slave` -  группа из двух серверов (master-salve) для сущностей.<br>
-Сервера transactions_shard1_master, transactions_shard2_master, transactions_shard1_slave, transactions_shard2_slave -  группа серверов  для транзакций.<br>
-Сервера entities_master, transactions_shard1_master, transactions_shard2_master в режиме для чтения и записи.<br>
-Сервера entities_slave, transactions_shard1_slave, transactions_shard2_slave в режиме только для чтения.<br>
+Сервера `transactions_shard1_master`, `transactions_shard2_master`, `transactions_shard1_slave`, `transactions_shard2_slave` -  группа серверов  для транзакций.<br>
+Сервера `entities_master`, `transactions_shard1_master`, `transactions_shard2_master` в режиме для чтения и записи.<br>
+Сервера `entities_slave`, `transactions_shard1_slave`, `transactions_shard2_slave` в режиме только для чтения.<br>
 
 # Домашнее задание к занятию "`Репликация и масштабирование. Часть 1`" - `Евдокимов Андрей`
 
