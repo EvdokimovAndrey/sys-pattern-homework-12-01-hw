@@ -19,16 +19,20 @@
 
 2.1. Ссылка на оф.документацию: https://www.postgresql.org/docs/current/app-pgdump.html<br>
 Пример создания дампа всей базы данных:<br> 
+
 sql```
 pg_dump -U myuser -h localhost -d mydatabase -F c -f /backups/mydatabase_backup.dump
 ```
 <br>
 Пример восставновления всей базы данных:<br>
+
 sql```
 pg_restore -U myuser -h localhost -d mydatabase_restored /backups/mydatabase_backup.dump
 ```
 <br>
-Где:
+
+Где: <br>
+
 `-U myuser`: Имя пользователя БД<br>
 `-h localhost`: Хост сервера БД<br>
 `-d mydatabase`: Имя базы данных для бэкапа<br>
@@ -42,12 +46,13 @@ pg_restore -U myuser -h localhost -d mydatabase_restored /backups/mydatabase_bac
 3.1.* В каких случаях использование реплики будет давать преимущество по сравнению с обычным резервным копированием?<br>
 Приведите ответ в свободной форме.<br>
 
-3.1. 
+3.1. <br>
+
 sql```
-mysqlbackup --defaults-file=/home/dbadmin/my.cnf \
-  --incremental --incremental-base=history:last_backup \
-  --backup-dir=/home/dbadmin/temp_dir \
-  --backup-image=incremental_image1.bi \
+mysqlbackup --defaults-file=/home/dbadmin/my.cnf \n
+  --incremental --incremental-base=history:last_backup \n
+  --backup-dir=/home/dbadmin/temp_dir \n
+  --backup-image=incremental_image1.bi \n
    backup-to-image```
 <br>
 
