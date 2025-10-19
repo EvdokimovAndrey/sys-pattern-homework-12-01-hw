@@ -51,10 +51,10 @@ pg_restore -U myuser -h localhost -d mydatabase_restored /backups/mydatabase_bac
 3.1. Ссылка на оф.документацию: https://dev.mysql.com/doc/mysql-enterprise-backup/4.1/en/mysqlbackup.incremental.html <br>
 
 ```sql
-mysqlbackup --defaults-file=/home/dbadmin/my.cnf \n
-  --incremental --incremental-base=history:last_backup \n
-  --backup-dir=/home/dbadmin/temp_dir \n
-  --backup-image=incremental_image1.bi \n
+mysqlbackup --defaults-file=/home/dbadmin/my.cnf \
+  --incremental --incremental-base=history:last_backup \
+  --backup-dir=/home/dbadmin/temp_dir \
+  --backup-image=incremental_image1.bi \
    backup-to-image
 ```
 <br>
