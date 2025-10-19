@@ -20,15 +20,17 @@
 2.1. Ссылка на оф.документацию: https://www.postgresql.org/docs/current/app-pgdump.html<br>
 Пример создания дампа всей базы данных:<br> 
 
-sql```
+```sql
 pg_dump -U myuser -h localhost -d mydatabase -F c -f /backups/mydatabase_backup.dump
 ```
+
 <br>
 Пример восставновления всей базы данных:<br>
 
-sql```
+```sql
 pg_restore -U myuser -h localhost -d mydatabase_restored /backups/mydatabase_backup.dump
 ```
+
 <br>
 
 Где: <br>
